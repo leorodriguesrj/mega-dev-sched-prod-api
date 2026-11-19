@@ -9,11 +9,24 @@ async function feed(env) {
   return incidents;
 }
 
+function findIncident(incidents, id) {
+  return incidents.find(i => i.id === id);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === 'GET' && url.pathname === '/incidents') {
       return json({ incidents: await feed(env) });
+    }
+    if (request.method === 'GET' && url.pathname.startsWith('/incidents/')) {
+      const id = url.pathname.split('/')[2];
+      const incidents = await feed(env);
+      const incident = findIncident(incidents, id);
+      if (incident) {
+        return json({ incident });
+      }
+      return json({ error: 'not found' }, 404);
     }
     return json({ error: 'not found' }, 404);
   },
