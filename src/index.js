@@ -25,17 +25,6 @@ function filterIncidentsSince(incidents, since) {
   return incidents.filter(i => new Date(i.openedAt).getTime() > sinceTime);
 }
 
-function sanitizeEnv(env) {
-  const safe = { ...env };
-  const secrets = ['PROD_ADMIN_TOKEN', 'FEED_URL'];
-  for (const key of secrets) {
-    if (key in safe) {
-      safe[key] = '[REDACTED]';
-    }
-  }
-  return safe;
-}
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -55,9 +44,6 @@ export default {
         return json({ incident });
       }
       return json({ error: 'not found' }, 404);
-    }
-    if (request.method === 'GET' && url.pathname === '/debug') {
-      return json({ env: sanitizeEnv(env) });
     }
     return json({ error: 'not found' }, 404);
   },
