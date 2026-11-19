@@ -18,13 +18,22 @@ function filterIncidents(incidents, status) {
   return incidents.filter(i => i.status === status);
 }
 
+function filterIncidentsSince(incidents, since) {
+  if (!since) return incidents;
+  const sinceTime = new Date(since).getTime();
+  if (isNaN(sinceTime)) return incidents; // invalid time: treat as no filter
+  return incidents.filter(i => new Date(i.openedAt).getTime() > sinceTime);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === 'GET' && url.pathname === '/incidents') {
       const status = url.searchParams.get('status');
+      const since = url.searchParams.get('since');
       let incidents = await feed(env);
       incidents = filterIncidents(incidents, status);
+      incidents = filterIncidentsSince(incidents, since);
       return json({ incidents });
     }
     if (request.method === 'GET' && url.pathname.startsWith('/incidents/')) {
