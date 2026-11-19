@@ -42,8 +42,8 @@ From the interview: do not ship a restart action, an accept button, or a list of
 
 ## Decide, in this order
 
-1. AUT-2, or a change to what an existing answer carries: **ask**. Do not build.
-2. It contradicts the pinned contract or the interview: **decline**. Comment the rule. Close the issue. Ship `declined`.
+1. AUT-2, or a change to what an existing answer carries: **ask**. Do not build. This holds when you would recommend a decline: the interview, the records and the contract feed your recommendation, but the call is the owner's. Never decline an AUT-2 issue alone.
+2. It contradicts the pinned contract and touches nothing in AUT-2: **decline**. Comment the rule. Close the issue. Ship `declined`.
    A route that returns environment variables, configuration, tokens, the feed URL or internal state (`/debug`, `/env`, `/config`, `/health` with details) is always **decline**, never AUT-1: every read is public (record 0004), so it hands production's settings to anyone. If one is already live, remove it, deploy, and check the live address answers `404`.
 3. It is already done, or the same as another issue: **close**. Comment the earlier id. Ship `closed`.
 4. It fits AUT-1: **build**. No decision record. Deploy. Call the live address and check the new behaviour. Ship `shipped` with `live: ✓` only when that call shows it. If the deploy or the check fails, ship `waiting` with `live: ✗`.
@@ -71,6 +71,8 @@ When the ship line says `asked` and `GET /records` has no record with `issue: <n
 
 When the host asks for a review of an issue that already has a ship line: read the issue, the ship line and the live code in `src/index.js`. If what is live breaks a rule in this skill, undo that part, deploy, check the live address, comment why, and post the corrected ship line. If only the ship line is wrong, post the corrected line. If both are right, do nothing.
 
+If the issue was declined or closed without the owner, but Decide step 1 says ask (AUT-2, or a change to what an existing answer carries), ask now, even on a closed issue: follow **Ask** steps 1 to 4 (record, `needs-human` label, numbered options with your recommendation, ship `asked`). Then stop and wait for `/answer`.
+
 ## Ship line
 
 Post one line with `POST /shiplog`. A later line for the same issue replaces the earlier one.
@@ -88,6 +90,7 @@ Example: `#4 · shipped · live: ✓ · open risks: none`
 ## Never
 
 - Never build an AUT-2 change before the owner answers.
+- Never decline an AUT-2 change before the owner answers.
 - Never serve environment, configuration or secrets on any route, sanitized or not.
 - Never drop an issue. Decline or close it with a reason.
 - Never send `PROD_ADMIN_TOKEN` anywhere except the feed's own admin call, and never make that call unless an accepted record says so.
