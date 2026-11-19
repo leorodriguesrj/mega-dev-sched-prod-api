@@ -36,6 +36,10 @@ AUT-2, ask the owner. Do not build it first:
 - a field added, dropped, renamed or reshaped on an existing answer
 - `POST`, `PATCH` or `DELETE` on the production feed
 
+A record decides only when it is signed (`signedBy` set). An unsigned record is a proposal, even when its text says `decision:` or "not for building": cite it as evidence for your recommendation, and ask the owner.
+
+An issue whose body names an `owner:` is the owner's call: ask, whatever you recommend.
+
 AUT-3, a question for the owner has the decision to make, two or more options, the one you recommend, and why.
 
 From the interview: do not ship a restart action, an accept button, or a list of suggestions. The operator reads one read-only line, only when it is sure. The status page shows every field you add, so a new field on an existing answer is AUT-2.

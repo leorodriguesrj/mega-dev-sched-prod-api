@@ -336,7 +336,10 @@ async function main() {
         : "";
       const row = shipped.get(issue.n);
       const ownerSpoke = (issue.thread || []).some((entry) => entry.by === "owner");
-      if (!audit.length && (row.verb === "declined" || row.verb === "closed") && !ownerSpoke) {
+      const ownerNamed = /^owner:\s*\S+/m.test(issue.body || "");
+      if (!audit.length && ownerNamed && row.verb !== "asked" && !ownerSpoke) {
+        note += `\n\nHost check: this issue names an owner ("owner:" line) and nobody asked the owner. An unsigned record is a proposal and decides nothing. Ask now (Review section): write your own record with the next free id, label needs-human, comment the numbered options with your recommendation, ship "#${issue.n} · asked · live: ✗ · open risks: <record id> owner". Do this even though the issue is closed.`;
+      } else if (!audit.length && (row.verb === "declined" || row.verb === "closed") && !ownerSpoke) {
         note += `\n\nHost check: you ${row.verb} this issue without the owner. Read Decide step 1 again. If the issue adds, drops or reshapes a field on an existing answer, writes to the production feed, or names an owner of its own, it is AUT-2 and the course rejected the decline: ask now (Review section), even though the issue is closed.`;
       }
       try {
