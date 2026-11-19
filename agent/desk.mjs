@@ -294,7 +294,11 @@ async function main() {
   const attempts = new Map();
   if (process.env.FEED_URL) {
     await log("startup deploy (cloudflare)");
-    await log(await deploy());
+    try {
+      await log(await deploy());
+    } catch (error) {
+      await log(`startup deploy failed, going on: ${error.message.slice(0, 400)}`);
+    }
   }
   for (;;) {
     try {
