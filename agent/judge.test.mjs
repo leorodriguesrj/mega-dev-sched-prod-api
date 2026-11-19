@@ -28,7 +28,9 @@ test("shouldRun waits on the owner, then runs once the answer is in", () => {
     n: 1,
     thread: [{ by: "agent", at: "2026-11-19T16:00:00.000Z", kind: "comment", body: "Picked up #1." }],
   };
-  assert.equal(shouldRun(asked, ship, false), false);
+  assert.equal(shouldRun(asked, ship, true), false);
+  assert.equal(shouldRun(asked, ship, false), true);
+  assert.equal(shouldRun({ n: 5, thread: [{ by: "agent" }] }, parseShip("#5 · shipped · live: ✗ · open risks: none"), false), true);
   const answered = {
     ...asked,
     thread: [
@@ -36,7 +38,7 @@ test("shouldRun waits on the owner, then runs once the answer is in", () => {
       { by: "owner", at: "2026-11-19T16:10:00.000Z", kind: "comment", body: "/answer 2" },
     ],
   };
-  assert.equal(shouldRun(answered, ship, false), true);
+  assert.equal(shouldRun(answered, ship, true), true);
   assert.equal(answerKey(answered), "1:2026-11-19T16:10:00.000Z");
   assert.equal(shouldRun({ n: 2, thread: [] }, ship, false), false);
 });

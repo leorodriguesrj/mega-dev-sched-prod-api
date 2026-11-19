@@ -60,6 +60,12 @@ Follow `AGENTS.md` and `decisions/TEMPLATE.md`. Do not invent headings.
 6. When `/answer <n>` is in the thread: set the record to `status: accepted`, fill **Decision** with the option, who answered, and when. Build option `<n>` (a `decline` option is not built). Deploy and check the live address when you built something.
 7. Comment that the owner must sign record `<id>` on the round page. The signature has to be there before the harness claims the round.
 
+## Rework
+
+When the ship line for this issue already says `live: ✗` after `shipped` or `waiting`, the change never reached the live address. The code from that try is gone. Build it again, deploy, check the live address, then post a new ship line. When the issue is closed, comment what you shipped and leave it closed.
+
+When the ship line says `asked` and `GET /records` has no record with `issue: <n>`, the record is missing. Write it with `PUT /records/{id}` before anything else.
+
 ## Ship line
 
 Post one line with `POST /shiplog`. A later line for the same issue replaces the earlier one.

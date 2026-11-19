@@ -46,8 +46,9 @@ export function shouldRun(issue, ship, hasRecord) {
   if (needsPickup(issue, ship, hasRecord)) return false;
   const row = ship.get(issue.n);
   if (!row) return true;
-  if (row.verb !== "asked" && row.verb !== "waiting") return false;
-  return Boolean(lastAnswer(issue));
+  if (row.verb === "asked") return !hasRecord || Boolean(lastAnswer(issue));
+  if (row.verb === "waiting") return true;
+  return row.verb === "shipped" && row.live !== "✓";
 }
 
 export function caughtUp(snapshot, ship) {
@@ -55,6 +56,8 @@ export function caughtUp(snapshot, ship) {
   if (Date.parse(snapshot.now) < Date.parse(snapshot.lastIssueBy)) return false;
   return (snapshot.issues || []).every((issue) => {
     const row = ship.get(issue.n);
-    return row && row.verb !== "asked" && row.verb !== "waiting";
+    if (!row) return false;
+    if (row.verb === "asked" || row.verb === "waiting") return false;
+    return !(row.verb === "shipped" && row.live !== "✓");
   });
 }
