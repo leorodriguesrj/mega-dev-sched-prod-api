@@ -9,3 +9,6 @@ FEED_URL = ""
 # Production: what `npm run deploy` ships.
 [env.production]
 workers_dev = true
+
+[env.production.vars]
+FEED_URL = ""

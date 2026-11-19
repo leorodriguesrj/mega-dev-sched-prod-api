@@ -85,7 +85,7 @@ async function deployCloudflare() {
   if (feed) {
     const tomlPath = resolve(root, "wrangler.toml");
     const toml = await readFile(tomlPath, "utf8");
-    const next = toml.replace(/FEED_URL\s*=\s*".*"/, `FEED_URL = "${feed}"`);
+    const next = toml.replace(/FEED_URL\s*=\s*".*"/g, `FEED_URL = "${feed}"`);
     if (next === toml) throw new Error("wrangler.toml has no FEED_URL assignment");
     await writeFile(tomlPath, next);
   }
