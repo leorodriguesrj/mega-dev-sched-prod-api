@@ -18,9 +18,22 @@ export function parseShip(text) {
   return map;
 }
 
+export function recordHeader(text) {
+  const match = /^---\n([\s\S]*?)\n---\n/.exec(String(text || ""));
+  if (!match) return null;
+  const header = match[1];
+  for (const key of ["id", "title", "issue", "status", "signed-by"]) {
+    if (!new RegExp(`^${key}:`, "m").test(header)) return null;
+  }
+  return header;
+}
+
 export function mentionsIssue(records, n) {
-  const pattern = new RegExp(`issue:\\s*${n}\\b`);
-  return (records || []).some((record) => pattern.test(record.text || ""));
+  const pattern = new RegExp(`^issue:\\s*${n}\\b`, "m");
+  return (records || []).some((record) => {
+    const header = recordHeader(record.text);
+    return header !== null && pattern.test(header);
+  });
 }
 
 export function needsPickup(issue, ship, hasRecord) {

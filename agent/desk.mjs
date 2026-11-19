@@ -7,7 +7,7 @@ import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
 import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, relative } from "node:path";
-import { answerKey, caughtUp, mentionsIssue, needsPickup, parseShip, shouldRun } from "./judge.mjs";
+import { answerKey, caughtUp, mentionsIssue, needsPickup, parseShip, recordHeader, shouldRun } from "./judge.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const skillPath = resolve(root, ".agents/skills/triage/SKILL.md");
@@ -230,6 +230,11 @@ const tools = [
 async function callTool(name, args) {
   if (name === "tracker") {
     if (!allowed(args.method, args.path)) throw new Error(`tracker call not allowed: ${args.method} ${args.path}`);
+    if (args.method === "PUT" && recordHeader(args.body?.text) === null) {
+      throw new Error(
+        "record refused by host: text must start with the header from decisions/TEMPLATE.md, between two '---' lines, with id, title, issue, status and signed-by (empty). Rewrite it and PUT again.",
+      );
+    }
     const result = await tracker(args.method, args.path, args.body);
     return typeof result === "string" ? result : JSON.stringify(result);
   }

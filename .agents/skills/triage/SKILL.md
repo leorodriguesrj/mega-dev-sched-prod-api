@@ -69,7 +69,7 @@ Follow `AGENTS.md` and `decisions/TEMPLATE.md`. Do not invent headings.
 
 When the ship line for this issue already says `live: ✗` after `shipped` or `waiting`, the change never reached the live address. The code from that try is gone. Build it again, deploy, check the live address, then post a new ship line. When the issue is closed, comment what you shipped and leave it closed.
 
-When the ship line says `asked` and `GET /records` has no record with `issue: <n>`, the record is missing. Write it with `PUT /records/{id}` before anything else.
+When the ship line says `asked` and `GET /records` has no record with `issue: <n>`, or that record's `status` reads `null`, the record is missing or its header is broken. The owner cannot answer it. Write it again under the same id with `PUT /records/{id}`, header exactly as in `decisions/TEMPLATE.md` (both `---` lines, `signed-by:` left empty), before anything else.
 
 ## Review
 

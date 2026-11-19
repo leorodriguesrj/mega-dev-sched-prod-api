@@ -1,6 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { answerKey, caughtUp, needsPickup, parseShip, shouldRun } from "./judge.mjs";
+import { answerKey, caughtUp, mentionsIssue, needsPickup, parseShip, shouldRun } from "./judge.mjs";
+
+test("mentionsIssue counts only records with a whole header", () => {
+  const good = "---\nid: 0008\ntitle: x\nissue: 6\nstatus: proposed\nsigned-by:\n---\n\n## Ask\n";
+  const broken = "---\nid: 0008\ntitle: x\nissue: 6\nstatus: proposed\n\n## Ask\n";
+  assert.equal(mentionsIssue([{ text: good }], 6), true);
+  assert.equal(mentionsIssue([{ text: broken }], 6), false);
+});
 
 const shipText = [
   "#1 · asked · live: ✗ · open risks: #1 owner",
