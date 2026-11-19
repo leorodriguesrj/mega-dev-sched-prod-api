@@ -13,11 +13,19 @@ function findIncident(incidents, id) {
   return incidents.find(i => i.id === id);
 }
 
+function filterIncidents(incidents, status) {
+  if (!status) return incidents;
+  return incidents.filter(i => i.status === status);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === 'GET' && url.pathname === '/incidents') {
-      return json({ incidents: await feed(env) });
+      const status = url.searchParams.get('status');
+      let incidents = await feed(env);
+      incidents = filterIncidents(incidents, status);
+      return json({ incidents });
     }
     if (request.method === 'GET' && url.pathname.startsWith('/incidents/')) {
       const id = url.pathname.split('/')[2];
