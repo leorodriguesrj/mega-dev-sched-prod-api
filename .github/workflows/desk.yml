@@ -1,6 +1,11 @@
 name: desk
 on:
   workflow_dispatch:
+    inputs:
+      recheck:
+        description: Review every issue that already has a ship line
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -27,6 +32,7 @@ jobs:
           TRACKER_TOKEN: ${{ secrets.TRACKER_TOKEN }}
           FEED_URL: ${{ secrets.FEED_URL }}
           LIVE_URL: ${{ vars.LIVE_URL }}
+          RECHECK: ${{ inputs.recheck }}
           LLM_BASE_URL: https://api.x.ai/v1
           LLM_MODEL: ${{ vars.LLM_MODEL }}
           LLM_KEY: ${{ secrets.LLM_KEY }}

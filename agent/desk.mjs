@@ -223,7 +223,7 @@ async function callTool(name, args) {
   throw new Error(`unknown tool ${name}`);
 }
 
-async function runIssue(issue, skill) {
+async function runIssue(issue, skill, task = `Work issue #${issue.n} through to its ship line.`) {
   const messages = [
     {
       role: "system",
@@ -232,7 +232,7 @@ async function runIssue(issue, skill) {
     {
       role: "user",
       content: [
-        `Work issue #${issue.n} through to its ship line.`,
+        task,
         `Live address: ${process.env.LIVE_URL || "(deploy has not reported one yet)"}`,
         `Issue JSON:\n${JSON.stringify(issue)}`,
       ].join("\n\n"),
@@ -298,6 +298,18 @@ async function main() {
       await log(await deploy());
     } catch (error) {
       await log(`startup deploy failed, going on: ${error.message.slice(0, 400)}`);
+    }
+  }
+  if (process.env.RECHECK === "true") {
+    const reviewed = await tracker("GET", "/issues");
+    const shipped = parseShip((await tracker("GET", "/shiplog")).text);
+    for (const issue of (reviewed.issues || []).sort((a, b) => a.n - b.n)) {
+      if (!shipped.has(issue.n)) continue;
+      try {
+        await runIssue(issue, skill, `Review issue #${issue.n} (see the Review section). Its ship line now: ${JSON.stringify(shipped.get(issue.n))}`);
+      } catch (error) {
+        await log(`review #${issue.n} failed: ${error.message}`);
+      }
     }
   }
   for (;;) {
