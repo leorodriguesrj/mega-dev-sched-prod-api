@@ -7,7 +7,7 @@ import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
 import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, relative } from "node:path";
-import { answerKey, caughtUp, mentionsIssue, needsPickup, parseShip, recordHeader, shouldRun } from "./judge.mjs";
+import { answerKey, caughtUp, mentionsIssue, needsPickup, parseShip, recordHeader, recordPending, shouldRun } from "./judge.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const skillPath = resolve(root, ".agents/skills/triage/SKILL.md");
@@ -371,14 +371,21 @@ async function main() {
         .filter((issue) => {
           const key = answerKey(issue);
           if ((attempts.get(key) || 0) >= maxAttempts) return false;
-          return shouldRun(issue, shipNow, mentionsIssue(recordsNow, issue.n));
+          return shouldRun(issue, shipNow, mentionsIssue(recordsNow, issue.n)) || recordPending(recordsNow, issue);
         })
         .sort((a, b) => a.n - b.n)[0];
       if (next) {
         const key = answerKey(next);
         attempts.set(key, (attempts.get(key) || 0) + 1);
         try {
-          await runIssue(next, skill);
+          const pending = recordPending(recordsNow, next);
+        await runIssue(
+          next,
+          skill,
+          pending
+            ? `The owner answered issue #${next.n}, but its record is not accepted yet, so the owner cannot sign it. Do Ask steps 6 and 7 now: PUT the record again under the same id with "status: accepted" and the Decision filled in (option, owner, time of the /answer), the whole header as in decisions/TEMPLATE.md. Then comment that the owner must sign it, and keep the ship line.`
+            : undefined,
+        );
         } catch (error) {
           await log(`#${next.n} failed: ${error.message}`);
         }

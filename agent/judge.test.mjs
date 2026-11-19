@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { answerKey, caughtUp, mentionsIssue, needsPickup, parseShip, shouldRun } from "./judge.mjs";
+import { answerKey, caughtUp, mentionsIssue, needsPickup, parseShip, recordPending, shouldRun } from "./judge.mjs";
+
+test("recordPending when the owner answered and the record is still proposed", () => {
+  const text = "---\nid: 0009\ntitle: x\nissue: 2\nstatus: proposed\nsigned-by:\n---\n";
+  const issue = { n: 2, thread: [{ by: "owner", at: "t", kind: "comment", body: "/answer 1" }] };
+  assert.equal(recordPending([{ by: "agent", status: "proposed", text }], issue), true);
+  assert.equal(recordPending([{ by: "agent", status: "accepted", text }], issue), false);
+  assert.equal(recordPending([{ by: "agent", status: "proposed", text }], { n: 2, thread: [] }), false);
+});
 
 test("mentionsIssue counts only records with a whole header", () => {
   const good = "---\nid: 0008\ntitle: x\nissue: 6\nstatus: proposed\nsigned-by:\n---\n\n## Ask\n";

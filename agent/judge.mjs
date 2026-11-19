@@ -36,6 +36,17 @@ export function mentionsIssue(records, n) {
   });
 }
 
+// The owner answered, but the record for the issue is not accepted yet: the owner cannot sign it.
+export function recordPending(records, issue) {
+  if (!lastAnswer(issue)) return false;
+  const pattern = new RegExp(`^issue:\\s*${issue.n}\\b`, "m");
+  return (records || []).some((record) => {
+    if (record.by !== "agent") return false;
+    const header = recordHeader(record.text);
+    return header !== null && pattern.test(header) && record.status !== "accepted";
+  });
+}
+
 export function needsPickup(issue, ship, hasRecord) {
   if (hasRecord) return false;
   if (ship?.has(issue.n)) return false;
