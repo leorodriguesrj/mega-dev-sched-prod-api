@@ -1,0 +1,35 @@
+name: desk
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: desk
+  cancel-in-progress: false
+jobs:
+  desk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: mask secrets
+        run: |
+          echo "::add-mask::${{ secrets.TRACKER_TOKEN }}"
+          echo "::add-mask::${{ secrets.LLM_KEY }}"
+          echo "::add-mask::${{ secrets.CLOUDFLARE_API_TOKEN }}"
+      - name: run the desk
+        env:
+          TRACKER_URL: ${{ secrets.TRACKER_URL }}
+          TRACKER_TOKEN: ${{ secrets.TRACKER_TOKEN }}
+          FEED_URL: ${{ secrets.FEED_URL }}
+          LIVE_URL: ${{ vars.LIVE_URL }}
+          LLM_BASE_URL: https://api.x.ai/v1
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          LLM_KEY: ${{ secrets.LLM_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node agent/desk.mjs
