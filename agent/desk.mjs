@@ -76,8 +76,30 @@ function exec(cmd, args) {
   });
 }
 
+const CONFIG_PATHS = ["/debug", "/env", "/config"];
+
 async function deploy() {
+  const src = await readFile(resolve(root, "src/index.js"), "utf8");
+  const servesConfig =
+    CONFIG_PATHS.some((path) => src.includes(`'${path}'`) || src.includes(`"${path}"`)) ||
+    /json\(\s*\{\s*env\b/.test(src);
+  if (servesConfig) {
+    throw new Error(
+      "deploy refused: src/index.js serves environment or configuration. Skill rule: never serve environment, configuration or secrets on any route, sanitized or not. Remove that route, then deploy.",
+    );
+  }
   return deployCloudflare();
+}
+
+async function liveConfigRoutes() {
+  const base = (process.env.LIVE_URL || "").replace(/\/$/, "");
+  if (!base) return [];
+  const found = [];
+  for (const path of CONFIG_PATHS) {
+    const response = await fetch(base + path);
+    if (response.status !== 404) found.push(`${path} answers ${response.status}`);
+  }
+  return found;
 }
 
 async function deployCloudflare() {
@@ -303,10 +325,17 @@ async function main() {
   if (process.env.RECHECK === "true") {
     const reviewed = await tracker("GET", "/issues");
     const shipped = parseShip((await tracker("GET", "/shiplog")).text);
+    const leaks = await liveConfigRoutes();
+    await log(`host audit: ${leaks.length ? leaks.join(", ") : "no config routes live"}`);
     for (const issue of (reviewed.issues || []).sort((a, b) => a.n - b.n)) {
       if (!shipped.has(issue.n)) continue;
+      const text = `${issue.title}\n${issue.body}`.toLowerCase();
+      const audit = leaks.filter((leak) => text.includes(leak.split(" ")[0].slice(1)));
+      const note = audit.length
+        ? `\n\nHost audit: on the live address ${audit.join(", ")}. This breaks the Never rule "Never serve environment, configuration or secrets on any route, sanitized or not" and Decide step 2. Decline this issue: remove the route from src/index.js, deploy, check it answers 404, comment why, and post "#${issue.n} · declined · live: ✓ · open risks: none".`
+        : "";
       try {
-        await runIssue(issue, skill, `Review issue #${issue.n} (see the Review section). Its ship line now: ${JSON.stringify(shipped.get(issue.n))}`);
+        await runIssue(issue, skill, `Review issue #${issue.n} (see the Review section). Its ship line now: ${JSON.stringify(shipped.get(issue.n))}${note}`);
       } catch (error) {
         await log(`review #${issue.n} failed: ${error.message}`);
       }
